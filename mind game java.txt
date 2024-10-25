@@ -1,0 +1,117 @@
+const square = document.getElementById('square');
+let activeCoin = null;
+
+function createSymmetryLines() {
+    const horizontalLine = document.createElement('div');
+    horizontalLine.classList.add('line', 'horizontal');
+    square.appendChild(horizontalLine);
+
+    const verticalLine = document.createElement('div');
+    verticalLine.classList.add('line', 'vertical');
+    square.appendChild(verticalLine);
+
+    const diagonalLine1 = document.createElement('div');
+    diagonalLine1.classList.add('line', 'diagonal1');
+    square.appendChild(diagonalLine1);
+
+    const diagonalLine2 = document.createElement('div');
+    diagonalLine2.classList.add('line', 'diagonal2');
+    square.appendChild(diagonalLine2);
+}
+
+createSymmetryLines();
+
+document.getElementById('toss-btn').addEventListener('click', tossCoin);
+
+function tossCoin() {
+    const players = ['Player 1', 'Player 2'];
+    const resultElement = document.getElementById('result');
+    
+    // Randomly select the player to start the game
+    const starterIndex = Math.floor(Math.random() * players.length);
+    const starter = players[starterIndex];
+    
+    resultElement.textContent = starter + ' starts the game!';
+
+    // Disable the toss button after the toss
+    document.getElementById('toss-btn').disabled = true;
+}
+
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("coin_id", ev.target.id);
+    activeCoin = ev.target;
+}
+
+function drop(ev) {
+    ev.preventDefault();
+    const rect = square.getBoundingClientRect();
+    const x = ev.clientX - rect.left;
+    const y = ev.clientY - rect.top;
+
+    // Place the coin at the drop point within the square
+    activeCoin.style.position = 'absolute';
+    activeCoin.style.left = x + 'px';
+    activeCoin.style.top = y + 'px';
+    square.appendChild(activeCoin);
+
+    activeCoin = null;
+}
+
+// Draggable Coin
+const draggableElements = document.querySelectorAll('.draggable');
+
+draggableElements.forEach(element => {
+    element.addEventListener('mousedown', (e) => {
+        let offsetX = e.clientX - element.getBoundingClientRect().left;
+        let offsetY = e.clientY - element.getBoundingClientRect().top;
+
+        function onMouseMove(e) {
+            let x = e.clientX - offsetX;
+            let y = e.clientY - offsetY;
+
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+        }
+
+        function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+});
+document.addEventListener('DOMContentLoaded', function() {
+    const square = document.getElementById('square');
+    const playerCoins = document.querySelectorAll('.player-coins .coin');
+
+    playerCoins.forEach(coin => {
+        coin.addEventListener('dragstart', dragStart);
+    });
+
+    square.addEventListener('dragover', dragOver);
+    square.addEventListener('drop', drop);
+
+    function dragStart(event) {
+        event.dataTransfer.setData('text/plain', event.target.id);
+    }
+
+    function dragOver(event) {
+        event.preventDefault();
+    }
+
+    function drop(event) {
+        event.preventDefault();
+        const data = event.dataTransfer.getData('text/plain');
+        const coin = document.getElementById(data);
+        square.appendChild(coin);
+        coin.style.position = 'absolute';
+        coin.style.left = (event.clientX - square.offsetLeft - (coin.offsetWidth / 2)) + 'px';
+        coin.style.top = (event.clientY - square.offsetTop - (coin.offsetHeight / 2)) + 'px';
+    }
+});
